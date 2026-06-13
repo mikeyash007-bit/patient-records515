@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Health Records Database</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; }
+        .container { max-width: 1200px; margin: auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        h1 { color: #2c3e50; text-align: center; }
+        .search-box { display: flex; gap: 10px; margin-bottom: 30px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 4px; font-size: 16px; }
+        button { padding: 12px 25px; background-color: #27ae60; color: white; border: none; border-radius: 4px; cursor: pointer; font-weight: bold; }
+        button:hover { background-color: #219150; }
+        #resultArea { margin-top: 20px; }
+        .patient-card { border: 1px solid #eee; padding: 20px; border-radius: 8px; background: #fff; display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 15px; }
+        .data-item { border-bottom: 1px solid #f9f9f9; padding: 5px 0; }
+        .label { font-weight: bold; color: #7f8c8d; font-size: 0.85em; display: block; }
+        .value { color: #2c3e50; font-size: 1em; }
+        .no-results { text-align: center; color: #e74c3c; font-weight: bold; }
+        .header-info { text-align: center; font-size: 0.9em; color: #666; margin-bottom: 20px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h1>Health Records Search Portal</h1>
+    <p class="header-info">Total Records: 515 | Authorized Access Only</p>
+    
+    <div class="search-box">
+        <input type="text" id="searchInput" placeholder="Enter Patient Name (Ex: Shashikala, Shwetha...)" onkeyup="if(event.key === 'Enter') searchPatient()">
+        <button onclick="searchPatient()">Search Details</button>
+    </div>
+
+    <div id="resultArea"></div>
+</div>
+
+<script>
+    // DATA SECTION: This contains the data extracted from your PDF
+    // To add all 515 patients, simply add more objects to this list
+    const patientData = [
+        { "SlNo": 1, "Name": "Shashikala. R", "Age": 59, "Institution": "BCHI", "Designation": "-", "Phone": "9448253798", "Weight": 58, "Height": 154, "BMI": 24.5, "HTN": "No", "SBP": 116, "DBP": 72, "DM": "No", "RBS": 122, "Hb": 11.3, "TotalCount": 6620, "Platelet": 1.27, "Urea": 18, "Creatinine": 0.6, "PapSmear": "Normal", "Opinion": "Normal" },
+        { "SlNo": 2, "Name": "Shwetha. K", "Age": 41, "Institution": "BCHI", "Designation": "-", "Phone": "9740833351", "Weight": 67, "Height": 156, "BMI": 27.5, "HTN": "No", "SBP": 110, "DBP": 70, "DM": "No", "RBS": 100, "Hb": 12.9, "TotalCount": 7310, "Platelet": 2.84, "Urea": 20, "Creatinine": 0.7, "PapSmear": "Negative & Candida species", "Opinion": "Good" },
+        { "SlNo": 3, "Name": "Nagarathna. B", "Age": 53, "Institution": "BCHI", "Designation": "-", "Phone": "9483322407", "Weight": 89, "Height": 148, "BMI": 40.6, "HTN": "No", "SBP": 128, "DBP": 84, "DM": "No", "RBS": 212, "Hb": 14.4, "TotalCount": 10970, "Platelet": 2.7, "Urea": 20, "Creatinine": 0.6, "PapSmear": "-", "Opinion": "-" },
+        { "SlNo": 4, "Name": "Mamatha. NS", "Age": 47, "Institution": "BCHI", "Designation": "-", "Phone": "9844490442", "Weight": 51, "Height": 153, "BMI": 21.8, "HTN": "No", "SBP": 130, "DBP": 80, "DM": "No", "RBS": 130, "Hb": 13.8, "TotalCount": 8290, "Platelet": 2.85, "Urea": 21, "Creatinine": 0.7, "PapSmear": "Negative & Bacterial vaginosis", "Opinion": "Good" },
+        { "SlNo": 77, "Name": "Sarojini", "Age": 56, "Institution": "BDCH", "Designation": "Staff Nurse", "Phone": "9844538870", "Weight": 61, "Height": 151, "BMI": 26.3, "HTN": "No", "SBP": 118, "DBP": 80, "DM": "Yes", "RBS": 240, "Hb": 14.0, "TotalCount": 11140, "Platelet": 3.32, "Urea": 10, "Creatinine": 0.4, "PapSmear": "Normal", "Opinion": "Excellent" },
+        { "SlNo": 110, "Name": "Premalatha", "Age": 32, "Institution": "BDCH", "Designation": "Attender", "Phone": "8971515872", "Weight": 59, "Height": 150, "BMI": 24, "HTN": "Yes", "SBP": 148, "DBP": 84, "DM": "No", "RBS": 84, "Hb": 7.3, "TotalCount": 3630, "Platelet": 1.37, "Urea": 62, "Creatinine": 5.5, "PapSmear": "Unsatisfactory", "Opinion": "-" }
+        // ... (Add all other patients here following the same format)
+    ];
+
+    function searchPatient() {
+        const query = document.getElementById('searchInput').value.toLowerCase().trim();
+        const resultsContainer = document.getElementById('resultArea');
+        resultsContainer.innerHTML = "";
+
+        if (query === "") return;
+
+        const filtered = patientData.filter(p => p.Name.toLowerCase().includes(query));
+
+        if (filtered.length > 0) {
+            filtered.forEach(patient => {
+                const card = document.createElement('div');
+                card.className = 'patient-card';
+                
+                let content = "";
+                for (const [key, value] of Object.entries(patient)) {
+                    content += `
+                        <div class="data-item">
+                            <span class="label">${key}</span>
+                            <span class="value">${value || 'N/A'}</span>
+                        </div>
+                    `;
+                }
+                card.innerHTML = content;
+                resultsContainer.appendChild(card);
+            });
+        } else {
+            resultsContainer.innerHTML = `<p class="no-results">No patient found with the name "${query}". Please check the spelling.</p>`;
+        }
+    }
+</script>
+
+</body>
+</html>
